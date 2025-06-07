@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Client Side </title>
+    </head>
+
+    <body>
+        <h1> Client Interface</h1>
+
+
+        <!-- Log in proceedure-->
+        <h2> Login </h2>
+        <div id="login-section">
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        </div>
+
+        <button onclick="login()">Login</button>
+        <button onclick="getSecret()">Get Secret</button>
+        <button id="logout-btn" onclick="logout()" style="display: none;">Logout</button>
+
+        <!-- Messaging --> 
+        <div id="api-actions" style="display: none;" >
+            <h2> API Interaction </h2>
+            <button onclick = "getMessage()">Get Message</button>
+            <button onclick = "sendEcho()">Send Echo</button>
+        </div>
+
+        <!-- Output-->        
+        <div id="output"></div>
+
+        <script>
+
+            let token = '';
+
+            function login() {
+    
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+
+                fetch('http://localhost:3000/api/login', {
+                    method : 'POST', 
+                    headers : { 'Content-Type' : 'application/json' },
+                    body : JSON.stringify({ username, password })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.token) {
+                        token = data.token;
+                        alert('Login successful!');
+                        document.getElementById('api-actions').style.display = 'block';
+                        document.getElementById('logout-btn').style.display = 'inline';
+                        document.getElementById('login-section').style.display = 'none';
+                    } else { alert('Login failed.');
+                    }
+                });
+            }
+
+            function logout() {
+                token = '';  // Clear token
+                document.getElementById('api-actions').style.display = 'none';
+                document.getElementById('logout-btn').style.display = 'none';
+                document.getElementById('login-section').style.display = 'block';
+                document.getElementById('output').innerText = 'You have been logged out.';
+            }
+
+
+            function getSecret() {
+                fetch('http://localhost:3000/api/secret', {
+                    method : 'GET', 
+                    headers : { 'Authorization' : `Bearer ${token}` }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('output').innerText = data.message || data.error;
+                });
+            }
+
+            function getMessage() {
+                fetch('http://localhost:3000/api/message')
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('output').innerText = data.message;
+                    });
+            }
+
+            function sendEcho() {
+                fetch('http://localhost:3000/api/echo', {
+                    method: 'POST', 
+                    headers: { 'Content-Type' : 'application/json' }, 
+                    body: JSON.stringify({ text: 'Hello Server from the Front End!'})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('output').innerText = data.echoed;
+                }); 
+            }
+        </script>
+    </body>
+</html>
